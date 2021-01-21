@@ -42,7 +42,7 @@
 #'   learning and departure behaviour.'  Journal of the Operational Research
 #'   Society (2000): 583-591.
 #' @references
-#'   \url{http://research.microsoft.com/en-us/um/people/minka/papers/minka-gamma.pdf}
+#'   \url{https://tminka.github.io/papers/minka-gamma.pdf}
 #'
 #' @export
 #' @examples
@@ -102,7 +102,7 @@ estimateRegularity <- function(elog, method = "wheat", plot = FALSE, title = "",
   } else {
     if (method == "mle") {
       # Maximum Likelihood Estimator
-      # http://en.wikipedia.org/wiki/Gamma_distribution#Maximum_likelihood_estimation
+      # https://en.wikipedia.org/wiki/Gamma_distribution#Maximum_likelihood_estimation
       est_k <- function(itts) {
         s <- log(sum(itts) / length(itts)) - sum(log(itts)) / length(itts)
         fn <- function(v) return( (log(v) - digamma(v) - s) ^ 2)
@@ -111,7 +111,7 @@ estimateRegularity <- function(elog, method = "wheat", plot = FALSE, title = "",
       }
     } else if (method == "mle-minka") {
       # Approximation for MLE by Minka
-      # http://research.microsoft.com/en-us/um/people/minka/papers/minka-gamma.pdf
+      # https://tminka.github.io/papers/minka-gamma.pdf
       est_k <- function(itts) {
         s <- log(sum(itts) / length(itts)) - sum(log(itts)) / length(itts)
         k <- (3 - s + sqrt( (s - 3) ^ 2 + 24 * s)) / (12 * s)
@@ -262,7 +262,8 @@ plotTimingPatterns <- function(elog, n = 40, T.cal = NULL, T.tot = NULL,
 #'  \item{\code{x}}{Number of recurring events in calibration period.}
 #'  \item{\code{t.x}}{Time between first and last event in calibration period.}
 #'  \item{\code{litt}}{Sum of logarithmic intertransaction timings during calibration period.}
-#'  \item{\code{sales}}{Sum of sales in calibration period. Only if \code{elog$sales} is provided.}
+#'  \item{\code{sales}}{Sum of sales in calibration period, incl. initial transaction. Only if \code{elog$sales} is provided.}
+#'  \item{\code{sales.x}}{Sum of sales in calibration period, excl. initial transaction. Only if \code{elog$sales} is provided.}
 #'  \item{\code{first}}{Date of first transaction in calibration period.}
 #'  \item{\code{T.cal}}{Time between first event and end of calibration period.}
 #'  \item{\code{T.star}}{Length of holdout period. Only if \code{T.cal} is provided.}
@@ -274,11 +275,23 @@ plotTimingPatterns <- function(elog, n = 40, T.cal = NULL, T.tot = NULL,
 #' cbs <- elog2cbs(groceryElog, T.cal = "2006-12-31", T.tot = "2007-12-30")
 #' head(cbs)
 elog2cbs <- function(elog, units = "week", T.cal = NULL, T.tot = NULL) {
-  cust <- first <- itt <- T.star <- x.star <- sales <- sales.star <- NULL  # suppress checkUsage warnings
+  cust <- first <- itt <- T.star <- x.star <- sales <- sales.star <- sales.x <- NULL  # suppress checkUsage warnings
   stopifnot(inherits(elog, "data.frame"))
+  is.dt <- is.data.table(elog)
+  if (nrow(elog) == 0) {
+    cbs <- data.frame(cust = character(0),
+                      x = numeric(0),
+                      t.x = numeric(0),
+                      litt = numeric(0),
+                      first = as.Date(character(0)),
+                      T.cal = numeric(0))
+    if (is.dt) cbs <- as.data.table(cbs)
+    return(cbs)
+  }
   if (!all(c("cust", "date") %in% names(elog))) stop("`elog` must have fields `cust` and `date`")
   if (!any(c("Date", "POSIXt") %in% class(elog$date))) stop("`date` field must be of class `Date` or `POSIXt`")
   if ("sales" %in% names(elog) & !is.numeric(elog$sales)) stop("`sales` field must be numeric")
+  if (is.data.frame(elog) && nrow(elog) == 0) stop("data.frame supplied to elog2cbs must not be empty")
   if (is.null(T.cal)) T.cal <- max(elog$date)
   if (is.null(T.tot)) T.tot <- max(elog$date)
   if (is.character(T.cal)) T.cal <- if (class(elog$date)[1] == "Date") as.Date(T.cal) else as.POSIXct(T.cal)
@@ -286,7 +299,6 @@ elog2cbs <- function(elog, units = "week", T.cal = NULL, T.tot = NULL) {
   if (T.tot < T.cal) T.tot <- T.cal
   stopifnot(T.tot >= min(elog$date))
 
-  is.dt <- is.data.table(elog)
   has.holdout <- T.cal < T.tot
   has.sales <- "sales" %in% names(elog)
 
@@ -311,7 +323,8 @@ elog2cbs <- function(elog, units = "week", T.cal = NULL, T.tot = NULL) {
                  list(x = .N - 1,
                       t.x = max(t),
                       litt = sum(log(itt[itt > 0])),
-                      sales = sum(sales)),
+                      sales = sum(sales),
+                      sales.x = sum(sales[t > 0])),
                  by = "cust,first"]
   cbs[, `:=`(T.cal, as.numeric(difftime(T.cal, first, units = units)))]
   setkey(cbs, cust)
@@ -322,14 +335,16 @@ elog2cbs <- function(elog, units = "week", T.cal = NULL, T.tot = NULL) {
     cbs <- merge(cbs, val, all.x = TRUE, by = "cust")
     cbs[is.na(x.star), `:=`(x.star, 0)]
     cbs[is.na(sales.star), `:=`(sales.star, 0)]
-    setcolorder(cbs, c("cust", "x", "t.x", "litt", "sales", "first", "T.cal", "T.star", "x.star", "sales.star"))
+    setcolorder(cbs, c("cust", "x", "t.x", "litt", "sales", "sales.x", "first", "T.cal",
+                       "T.star", "x.star", "sales.star"))
   } else {
-    setcolorder(cbs, c("cust", "x", "t.x", "litt", "sales", "first", "T.cal"))
+    setcolorder(cbs, c("cust", "x", "t.x", "litt", "sales", "sales.x", "first", "T.cal"))
   }
   # return same object type as was passed
   if (!has.sales) {
     elog_dt[, `:=`(sales, NULL)]
     cbs[, `:=`(sales, NULL)]
+    cbs[, `:=`(sales.x, NULL)]
     if (has.holdout) cbs[, `:=`(sales.star, NULL)]
   }
   if (!is.dt) {
@@ -421,7 +436,8 @@ dc.check.model.params.safe <- function(printnames, params, func) {
 #' @keywords internal
 dc.PlotTracking <- function(actual, expected, T.cal = NULL,
                             xlab = "", ylab = "", title = "",
-                            xticklab = NULL, ymax = NULL) {
+                            xticklab = NULL, ymax = NULL,
+                            legend = c("Actual", "Model")) {
 
   stopifnot(is.numeric(actual))
   stopifnot(is.numeric(expected))
@@ -441,7 +457,88 @@ dc.PlotTracking <- function(actual, expected, T.cal = NULL,
     axis(1, at = 1:length(actual), labels = xticklab)
   }
   if (!is.null(T.cal)) abline(v = max(T.cal), lty = 2)
-  pos <- ifelse(which.max(expected) == length(expected), "bottomright", "topright")
-  legend(pos, legend = c("Actual", "Model"), col = 1:2, lty = 1:2, lwd = 1)
+  if (!is.null(legend) & length(legend) == 2) {
+    pos <- ifelse(which.max(expected) == length(expected), "bottomright", "topright")
+    legend(pos, legend = legend, col = 1:2, lty = 1:2, lwd = 1)
+  }
   return(rbind(actual, expected))
+}
+
+
+#' Generic Method for Plotting Frequency vs. Conditional Expected Frequency
+#'
+#' @keywords internal
+dc.PlotFreqVsConditionalExpectedFrequency <- function(x, actual, expected, censor,
+                                                      xlab, ylab, xticklab, title) {
+
+  bin <- bin.size <- transaction.actual <- transaction.expected <- N <- NULL # suppress checkUsage warnings
+  if (length(x) != length(actual) | length(x) != length(expected) |
+      !is.numeric(x) | !is.numeric(actual) | !is.numeric(expected) |
+      any(x < 0) | any(actual < 0) | any(expected < 0))
+    stop("x, actual and expected must be non-negative numeric vectors of same length.")
+
+  if (censor > max(x)) censor <- max(x)
+  dt <- data.table(x, actual, expected)
+  dt[, bin := pmin(x, censor)]
+  st <- dt[, list(transaction.actual = mean(actual),
+                  transaction.expected = mean(expected),
+                  bin.size = .N), keyby = bin]
+  st <- merge(data.table(bin = 0:censor), st, all.x = TRUE, by = "bin")
+  comparison <- t(st)[-1, ]
+  col.names <- paste(rep("freq", length(censor + 1)), (0:censor), sep = ".")
+  col.names[censor + 1] <- paste0(col.names[censor + 1], "+")
+  colnames(comparison) <- col.names
+  if (is.null(xticklab) == FALSE) {
+    x.labels <- xticklab
+  } else {
+    if (censor < ncol(comparison)) {
+      x.labels <- 0:(censor)
+      x.labels[censor + 1] <- paste0(censor, "+")
+    } else {
+      x.labels <- 0:(ncol(comparison))
+    }
+  }
+  actual <- comparison[1, ]
+  expected <- comparison[2, ]
+  ylim <- c(0, ceiling(max(c(actual, expected)) * 1.1))
+  plot(actual, type = "l", xaxt = "n", col = 1, ylim = ylim, xlab = xlab, ylab = ylab, main = title)
+  lines(expected, lty = 2, col = 2)
+  axis(1, at = 1:ncol(comparison), labels = x.labels)
+  legend("topleft", legend = c("Actual", "Model"), col = 1:2, lty = 1:2, lwd = 1)
+  return(comparison)
+}
+
+
+#' Generic Method for Plotting Frequency vs. Conditional Expected Frequency
+#'
+#' @keywords internal
+dc.PlotRecVsConditionalExpectedFrequency <- function(t.x, actual, expected,
+                                                     xlab, ylab, xticklab, title) {
+  bin <- bin.size <- N <- NULL # suppress checkUsage warnings
+  if (length(t.x) != length(actual) | length(t.x) != length(expected) |
+      !is.numeric(t.x) | !is.numeric(actual) | !is.numeric(expected) |
+      any(t.x < 0) | any(actual < 0) | any(expected < 0))
+    stop("t.x, actual and expected must be non-negative numeric vectors of same length.")
+
+  dt <- data.table(t.x, actual, expected)
+  dt[, bin := floor(t.x)]
+  st <- dt[, list(actual = mean(actual),
+                  expected = mean(expected),
+                  bin.size = .N), keyby = bin]
+  st <- merge(data.table(bin = 1:floor(max(t.x))), st[bin > 0], all.x = TRUE, by = "bin")
+  comparison <- t(st)[-1, ]
+  x.labels <- NULL
+  if (is.null(xticklab) == FALSE) {
+    x.labels <- xticklab
+  } else {
+    x.labels <- 1:max(st$bin)
+  }
+  actual <- comparison[1, ]
+  expected <- comparison[2, ]
+  ylim <- c(0, ceiling(max(c(actual, expected), na.rm = TRUE) * 1.1))
+  plot(actual, type = "l", xaxt = "n", col = 1, ylim = ylim, xlab = xlab, ylab = ylab, main = title)
+  lines(expected, lty = 2, col = 2)
+  axis(1, at = 1:ncol(comparison), labels = x.labels)
+  legend("topleft", legend = c("Actual", "Model"), col = 1:2, lty = 1:2, lwd = 1)
+  return(comparison)
 }

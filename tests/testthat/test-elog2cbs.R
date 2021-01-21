@@ -25,9 +25,9 @@ test_that("elog2cbs", {
   expect_named(elog2cbs(elog_dt),
                c("cust", "x", "t.x", "litt", "first", "T.cal"))
   expect_named(elog2cbs(elog_s),
-               c("cust", "x", "t.x", "litt", "sales", "first", "T.cal"))
+               c("cust", "x", "t.x", "litt", "sales", "sales.x", "first", "T.cal"))
   expect_named(elog2cbs(elog_s, T.cal = T.cal),
-               c("cust", "x", "t.x", "litt", "sales", "first", "T.cal", "T.star", "x.star", "sales.star"))
+               c("cust", "x", "t.x", "litt", "sales", "sales.x", "first", "T.cal", "T.star", "x.star", "sales.star"))
   expect_named(elog2cbs(elog, T.cal = T.cal, T.tot = T.tot),
                c("cust", "x", "t.x", "litt", "first", "T.cal", "T.star", "x.star"))
   expect_named(elog2cbs(elog[, c("cust", "date")], T.cal = T.cal),
@@ -50,6 +50,7 @@ test_that("elog2cbs", {
   # check sales
   cbs <- elog2cbs(elog_s, T.cal = T.cal, T.tot = T.tot)
   expect_equal(elog_s[first <= T.cal & date <= T.cal, sum(sales)], sum(cbs$sales))
+  expect_equal(elog_s[first < date & first <= T.cal & date <= T.cal, sum(sales)], sum(cbs$sales.x))
   expect_equal(elog_s[first <= T.cal & date <= T.tot, sum(sales)], sum(cbs$sales) + sum(cbs$sales.star))
 
   # check that T.cal and T.tot also accept characters
@@ -64,6 +65,11 @@ test_that("elog2cbs", {
   expect_equal(elog2cbs(elog, units = "hours")$t.x / (7 * 24), elog2cbs(elog)$t.x)
   elog_time <- data.frame(cust = c(1, 1, 1, 1, 1, 2, 3), date = Sys.time() + c(0, 14, 14, 28, 35, 7, 24))
   expect_equal(elog2cbs(elog, units = "days")[, c(1:4, 6)], elog2cbs(elog_time, units = "secs")[, c(1:4, 6)])
+
+  # check for empty elog
+  empty_elog <- data.frame(cust = character(), date = as.Date(character()))
+  expect_equal(nrow(elog2cbs(empty_elog)), 0)
+  expect_equal(nrow(elog2cbs(as.data.table(empty_elog))), 0)
 
   # check for errors
   expect_error(elog2cbs(), "elog")

@@ -1,4 +1,4 @@
-## ---- echo = FALSE-------------------------------------------------------
+## ---- echo = FALSE------------------------------------------------------------
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 library(BTYDplus)
 data("groceryElog")
@@ -11,7 +11,7 @@ set.seed(123)
 plotTimingPatterns(groceryElog, n = 30, T.cal = "2007-05-15",
                    headers = c("Past", "Future"), title = "")
 
-## ---- echo=FALSE, results="asis"-----------------------------------------
+## ---- echo=FALSE, results="asis"----------------------------------------------
 cdnowElog <- read.csv(system.file("data/cdnowElog.csv", package = "BTYD"),
                       stringsAsFactors = FALSE,
                       col.names = c("cust", "sampleid", "date", "cds", "sales"))
@@ -33,11 +33,11 @@ plot(weekly_cum_total, typ = "l", frame = FALSE, main = "Cumulative")
 lines(weekly_cum_repeat, col = "red")
 par(op)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 data("groceryElog")
 head(elog2cbs(groceryElog), 5)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 data("groceryElog")
 range(groceryElog$date)
 groceryCBS <- elog2cbs(groceryElog, T.cal = "2006-12-31")
@@ -52,7 +52,7 @@ op <- par(mfrow = c(1, 2))
                              plot = TRUE, title = "Maximum Likelihood"))
 par(op)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 # load grocery dataset, if it hasn't been done before
 if (!exists("groceryCBS")) {
   data("groceryElog")
@@ -63,7 +63,7 @@ round(params.nbd <- nbd.EstimateParameters(groceryCBS), 3)
 # report log-likelihood
 nbd.cbs.LL(params.nbd, groceryCBS)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 # calculate expected future transactions for customers who've 
 # had 1 to 5 transactions in first 52 weeks
 est5.nbd <- nbd.ConditionalExpectedTransactions(params.nbd, 
@@ -72,7 +72,7 @@ for (i in 1:5) {
   cat("x =", i, ":", sprintf("%5.3f", est5.nbd[i]), "\n")
 }
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 # predict whole customer cohort
 groceryCBS$xstar.nbd <- nbd.ConditionalExpectedTransactions(
                     params = params.nbd, T.star = 52, 
@@ -81,20 +81,20 @@ groceryCBS$xstar.nbd <- nbd.ConditionalExpectedTransactions(
 rbind(`Actuals` = c(`Holdout` = sum(groceryCBS$x.star)), 
       `NBD`     = c(`Holdout` = round(sum(groceryCBS$xstar.nbd))))
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 # load grocery dataset, if it hasn't been done before
 if (!exists("groceryCBS")) {
   data("groceryElog")
   groceryCBS <- elog2cbs(groceryElog, T.cal = "2006-12-31")
 }
 # estimate Pareto/NBD parameters
-params.pnbd <- BTYD::pnbd.EstimateParameters(groceryCBS)
+params.pnbd <- BTYD::pnbd.EstimateParameters(groceryCBS[, c("x", "t.x", "T.cal")])
 names(params.pnbd) <- c("r", "alpha", "s", "beta")
 round(params.pnbd, 3)
 # report log-likelihood
-BTYD::pnbd.cbs.LL(params.pnbd, groceryCBS)
+BTYD::pnbd.cbs.LL(params.pnbd, groceryCBS[, c("x", "t.x", "T.cal")])
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 # calculate expected future transactions for customers who've 
 # had 1 to 5 transactions in first 12 weeks, but then remained
 # inactive for 40 weeks
@@ -104,7 +104,7 @@ for (i in 1:5) {
   cat("x =", i, ":", sprintf("%5.3f", est5.pnbd[i]), "\n")
 }
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 # predict whole customer cohort
 groceryCBS$xstar.pnbd <- BTYD::pnbd.ConditionalExpectedTransactions(
                      params = params.pnbd, T.star = 52, 
@@ -114,7 +114,7 @@ groceryCBS$xstar.pnbd <- BTYD::pnbd.ConditionalExpectedTransactions(
 rbind(`Actuals`    = c(`Holdout` = sum(groceryCBS$x.star)), 
       `Pareto/NBD` = c(`Holdout` = round(sum(groceryCBS$xstar.pnbd))))
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 # P(alive) for customers who've had 1 to 5 transactions in first 
 # 12 weeks, but then remained inactive for 40 weeks
 palive.pnbd <- BTYD::pnbd.PAlive(params.pnbd, 
@@ -123,7 +123,7 @@ for (i in 1:5) {
   cat("x =", i, ":", sprintf("%5.2f %%", 100*palive.pnbd[i]), "\n")
 }
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 # load grocery dataset, if it hasn't been done before
 if (!exists("groceryCBS")) {
   data("groceryElog")
@@ -147,7 +147,7 @@ rbind(`BG/NBD`     = row(c(1, params.bgnbd),
       `MBG/CNBD-k` = row(params.mbgcnbd, 
                          mbgcnbd.cbs.LL(params.mbgcnbd, groceryCBS)))
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 # calculate expected future transactions for customers who've 
 # had 1 to 5 transactions in first 12 weeks, but then remained
 # inactive for 40 weeks
@@ -157,7 +157,7 @@ for (i in 1:5) {
   cat("x =", i, ":", sprintf("%5.3f", est5.mbgcnbd[i]), "\n")
 }
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 # P(alive) for customers who've had 1 to 5 transactions in first 
 # 12 weeks, but then remained inactive for 40 weeks
 palive.mbgcnbd <- mbgcnbd.PAlive(params.mbgcnbd, 
@@ -166,7 +166,7 @@ for (i in 1:5) {
   cat("x =", i, ":", sprintf("%5.2f %%", 100*palive.mbgcnbd[i]), "\n")
 }
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 # predict whole customer cohort
 groceryCBS$xstar.mbgcnbd <- mbgcnbd.ConditionalExpectedTransactions(
                         params = params.mbgcnbd, T.star = 52,
@@ -183,11 +183,11 @@ nil <- mbgcnbd.PlotTrackingInc(params.mbgcnbd,
          T.tot = max(groceryCBS$T.cal + groceryCBS$T.star),
          actual.inc.tracking = elog2inc(groceryElog))
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 # mean absolute error (MAE)
 mae <- function(act, est) {
   stopifnot(length(act)==length(est))
-  sum(abs(act-est)) / sum(act)
+  sum(abs(act-est)) / length(act)
 }
 mae.nbd <- mae(groceryCBS$x.star, groceryCBS$xstar.nbd)
 mae.pnbd <- mae(groceryCBS$x.star, groceryCBS$xstar.pnbd)
@@ -198,7 +198,7 @@ rbind(`NBD`        = c(`MAE` = round(mae.nbd, 3)),
 lift <- 1 - mae.mbgcnbd / mae.pnbd
 cat("Lift in MAE for MBG/CNBD-k vs. Pareto/NBD:", round(100*lift, 1), "%")
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 # load grocery dataset, if it hasn't been done before
 if (!exists("groceryCBS")) {
   data("groceryElog")
@@ -219,7 +219,7 @@ head(groceryCBS[, c("x", "t.x", "x.star",
                     "xstar.pnbd.hb", "pactive.pnbd.hb",
                     "palive.pnbd.hb")])
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 class(pnbd.draws$level_2)
 
 # convert cohort-level draws from coda::mcmc.list to a matrix, with 
@@ -232,7 +232,7 @@ head(as.matrix(cohort.draws), 5)
 # estimates
 round(
   rbind(`Pareto/NBD (HB)` = apply(as.matrix(cohort.draws), 2, median),
-      `Pareto/NBD`      = BTYD::pnbd.EstimateParameters(groceryCBS))
+        `Pareto/NBD`      = BTYD::pnbd.EstimateParameters(groceryCBS[, c("x", "t.x", "T.cal")]))
 , 2)
 
 ## ---- fig.show="hold", warning=FALSE, fig.width=7, fig.height=3, fig.cap="MCMC traces and parameter distributions of cohort-level parameters"----
@@ -257,7 +257,7 @@ coda::traceplot(pnbd.draws$level_1[[customer4]])
 coda::densplot(pnbd.draws$level_1[[customer4]])
 par(op)
 
-## ---- eval = FALSE-------------------------------------------------------
+## ---- eval = FALSE------------------------------------------------------------
 #  # runs for ~120secs on a MacBook Pro 2015
 #  op <- par(mfrow = c(1, 2))
 #  nil <- mcmc.PlotFrequencyInCalibration(pnbd.draws, groceryCBS)
@@ -267,7 +267,7 @@ par(op)
 #           actual.inc.tracking.data = elog2inc(groceryElog))
 #  par(op)
 
-## ---- eval = FALSE-------------------------------------------------------
+## ---- eval = FALSE------------------------------------------------------------
 #  # load CDNow event log from BTYD package
 #  cdnowElog <- read.csv(
 #                 system.file("data/cdnowElog.csv", package = "BTYD"),
@@ -310,7 +310,7 @@ par(op)
 #  #> cov_log_lambda_log_mu  -0.35  0.22  0.76
 #  #> var_log_mu              0.55  2.59  4.97
 
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE--------------------------------------------------------------
 #  # load grocery dataset, if it hasn't been done before
 #  if (!exists("groceryCBS")) {
 #    data("groceryElog")
@@ -349,7 +349,7 @@ par(op)
 #  #>    k lambda     mu    tau      z
 #  #> 3.892  0.160  0.065 69.546  0.316
 
-## ---- eval = FALSE-------------------------------------------------------
+## ---- eval = FALSE------------------------------------------------------------
 #  # compare predictions with actuals at aggregated level
 #  rbind(`Actuals`    = c(`Holdout` = sum(groceryCBS$x.star)),
 #        `Pareto/GGG` = round(sum(groceryCBS$xstar.pggg)),
@@ -364,7 +364,7 @@ par(op)
 #  # error on customer level
 #  mae <- function(act, est) {
 #    stopifnot(length(act)==length(est))
-#    sum(abs(act-est)) / sum(act)
+#    sum(abs(act-est)) / length(act)
 #  }
 #  mae.pggg <- mae(groceryCBS$x.star, groceryCBS$xstar.pggg)
 #  mae.mbgcnbd <- mae(groceryCBS$x.star, groceryCBS$xstar.mbgcnbd)

@@ -5,10 +5,20 @@
 \title{Tracking Incremental Transactions Plot for Pareto/GGG, Pareto/NBD (HB) and
 Pareto/NBD (Abe)}
 \usage{
-mcmc.PlotTrackingInc(draws, T.cal, T.tot, actual.inc.tracking.data,
-  xlab = "Week", ylab = "Transactions", xticklab = NULL,
-  title = "Tracking Weekly Transactions", ymax = NULL,
-  sample_size = 10000)
+mcmc.PlotTrackingInc(
+  draws,
+  T.cal,
+  T.tot,
+  actual.inc.tracking.data,
+  xlab = "Week",
+  ylab = "Transactions",
+  xticklab = NULL,
+  title = "Tracking Weekly Transactions",
+  ymax = NULL,
+  sample_size = 10000,
+  covariates = NULL,
+  legend = c("Actual", "Model")
+)
 }
 \arguments{
 \item{draws}{MCMC draws as returned by \code{*.mcmc.DrawParameters}}
@@ -36,6 +46,11 @@ period (both calibration and holdout periods).}
 
 \item{sample_size}{Sample size for estimating the probability distribution.
 See \code{\link{mcmc.ExpectedCumulativeTransactions}}.}
+
+\item{covariates}{(optional) Matrix of covariates, for Pareto/NBD (Abe)
+model, passed to \code{\link{abe.GenerateData}} for simulating data.}
+
+\item{legend}{plot legend, defaults to `Actual` and `Model`.}
 }
 \value{
 Matrix containing actual and expected incremental repeat
@@ -67,4 +82,3 @@ mat <- mcmc.PlotTrackingInc(param.draws,
 \code{\link{mcmc.PlotTrackingCum}}
   \code{\link{mcmc.ExpectedCumulativeTransactions}} \code{\link{elog2inc}}
 }
-

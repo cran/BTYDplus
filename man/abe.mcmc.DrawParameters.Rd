@@ -4,8 +4,16 @@
 \alias{abe.mcmc.DrawParameters}
 \title{Pareto/NBD (Abe) Parameter Draws}
 \usage{
-abe.mcmc.DrawParameters(cal.cbs, covariates = c(), mcmc = 2500,
-  burnin = 500, thin = 50, chains = 2, mc.cores = NULL, trace = 100)
+abe.mcmc.DrawParameters(
+  cal.cbs,
+  covariates = c(),
+  mcmc = 2500,
+  burnin = 500,
+  thin = 50,
+  chains = 2,
+  mc.cores = NULL,
+  trace = 100
+)
 }
 \arguments{
 \item{cal.cbs}{Calibration period customer-by-sufficient-statistic (CBS)
@@ -45,7 +53,7 @@ data("groceryElog")
 cbs <- elog2cbs(groceryElog, T.cal = "2006-12-31")
 cbs$cov1 <- as.integer(cbs$cust) \%\% 2 # create dummy covariate
 param.draws <- abe.mcmc.DrawParameters(cbs, c("cov1"),
-  mcmc = 200, burnin = 100, thin = 20, chains = 1) # short MCMC to run demo fast
+  mcmc = 100, burnin = 50, thin = 10, chains = 1) # short MCMC to run demo fast
 
 # cohort-level parameter draws
 as.matrix(param.draws$level_2)
@@ -58,9 +66,10 @@ xstar.est <- apply(xstar.draws, 2, mean)
 head(xstar.est)
 }
 \references{
-Abe, Makoto. 'Counting your customers one by one: A hierarchical Bayes extension to the Pareto/NBD model.' Marketing Science 28.3 (2009): 541-553.
+Abe, M. (2009). "Counting your customers" one by one: A
+  hierarchical Bayes extension to the Pareto/NBD model. Marketing Science,
+  28(3), 541-553. \doi{10.1287/mksc.1090.0502}
 }
 \seealso{
 \code{\link{abe.GenerateData} } \code{\link{mcmc.PAlive} } \code{\link{mcmc.DrawFutureTransactions} }
 }
-

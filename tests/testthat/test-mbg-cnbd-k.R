@@ -4,7 +4,7 @@ test_that("MBG/CNBD-k", {
 
   # generate artificial MBG/CNBD-k data
   set.seed(1)
-  n <- 2000
+  n <- 8000
   params <- c(k = 3, r = 0.85, alpha = 1.45, a = 0.79, b = 2.42)
   sim <- mbgcnbd.GenerateData(n,
                              round(runif(n, 36, 96) / 12) * 12,
@@ -47,6 +47,8 @@ test_that("MBG/CNBD-k", {
   expect_silent(mbgcnbd.PlotTrackingInc(params, cbs$T.cal, max(cbs$T.cal + cbs$T.star), elog2inc(elog, by = 14)))
   expect_silent(mbgcnbd.PlotTrackingCum(params, cbs$T.cal, max(cbs$T.cal + cbs$T.star), elog2cum(elog, by = 14)))
   mat <- mbgcnbd.PlotFrequencyInCalibration(params, cbs, 7)
+  expect_equal(mat[1, ], mat[2, ], tolerance = 0.1)
+  mat <- mbgcnbd.PlotFreqVsConditionalExpectedFrequency(params, cbs$T.star, cbs, cbs$x.star, 7)
   expect_equal(mat[1, ], mat[2, ], tolerance = 0.1)
 
   # check that bias correction does not screw up single estimates

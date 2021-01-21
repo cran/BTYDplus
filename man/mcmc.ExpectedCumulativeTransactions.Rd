@@ -5,8 +5,14 @@
 \title{Expected Cumulative Transactions for Pareto/GGG, Pareto/NBD (HB) and
 Pareto/NBD (Abe)}
 \usage{
-mcmc.ExpectedCumulativeTransactions(draws, T.cal, T.tot, n.periods.final,
-  sample_size = 10000)
+mcmc.ExpectedCumulativeTransactions(
+  draws,
+  T.cal,
+  T.tot,
+  n.periods.final,
+  sample_size = 10000,
+  covariates = NULL
+)
 }
 \arguments{
 \item{draws}{MCMC draws as returned by \code{*.mcmc.DrawParameters}}
@@ -22,6 +28,9 @@ speed up calculations.}
 periods.}
 
 \item{sample_size}{Sample size for estimating the probability distribution.}
+
+\item{covariates}{(optional) Matrix of covariates, for Pareto/NBD (Abe)
+model, passed to \code{\link{abe.GenerateData}} for simulating data.}
 }
 \value{
 Numeric vector of expected cumulative total repeat transactions by
@@ -41,10 +50,9 @@ return result varies from one call to another. Larger values of
 data("groceryElog")
 cbs <- elog2cbs(groceryElog)
 param.draws <- pnbd.mcmc.DrawParameters(cbs,
-  mcmc = 200, burnin = 100, thin = 20, chains = 1) # short MCMC to run demo fast
+  mcmc = 100, burnin = 50, thin = 10, chains = 1) # short MCMC to run demo fast
 # Returns a vector containing expected cumulative repeat transactions for 104
 # weeks, with every eigth week being reported.
 mcmc.ExpectedCumulativeTransactions(param.draws,
   T.cal = cbs$T.cal, T.tot = 104, n.periods.final = 104/8, sample_size = 1000)
 }
-

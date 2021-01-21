@@ -4,8 +4,7 @@
 \alias{mcmc.plotPActiveDiagnostic}
 \title{Draw diagnostic plot to inspect error in P(active).}
 \usage{
-mcmc.plotPActiveDiagnostic(cbs, xstar,
-  title = "Diagnostic Plot for P(active)")
+mcmc.plotPActiveDiagnostic(cbs, xstar, title = "Diagnostic Plot for P(active)")
 }
 \arguments{
 \item{cbs}{A data.frame with column \code{x} and \code{x.star}.}
@@ -22,8 +21,7 @@ Draw diagnostic plot to inspect error in P(active).
 data("groceryElog")
 cbs <- elog2cbs(groceryElog, T.cal = "2006-12-31")
 param.draws <- pnbd.mcmc.DrawParameters(cbs,
-  mcmc = 200, burnin = 100, thin = 20, chains = 1) # short MCMC to run demo fast
+  mcmc = 100, burnin = 50, thin = 10, chains = 1) # short MCMC to run demo fast
 xstar.draws <- mcmc.DrawFutureTransactions(cbs, param.draws)
 mcmc.plotPActiveDiagnostic(cbs, xstar.draws)
 }
-

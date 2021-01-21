@@ -24,10 +24,14 @@
 #' @return A vector of estimated parameters.
 #' @export
 #' @seealso \code{\link[BTYD]{bgnbd.EstimateParameters}}
-#' @references (M)BG/CNBD-k: Platzer Michael, and Thomas Reutterer (submitted)
-#' @references MBG/NBD: Batislam, E.P., M. Denizel, A. Filiztekin. 2007.
-#'   Empirical validation and comparison of models for customer base analysis.
-#'   International Journal of Research in Marketing 24(3) 201-209.
+#' @references (M)BG/CNBD-k: Reutterer, T., Platzer, M., & Schroeder, N. (2020).
+#'   Leveraging purchase regularity for predicting customer behavior the easy
+#'   way. International Journal of Research in Marketing.
+#'   \doi{10.1016/j.ijresmar.2020.09.002}
+#' @references Batislam, E. P., Denizel, M., & Filiztekin, A. (2007). Empirical
+#'   validation and comparison of models for customer base analysis.
+#'   International Journal of Research in Marketing, 24(3), 201-209.
+#'   \doi{10.1016/j.ijresmar.2006.12.005}
 #' @examples
 #' \dontrun{
 #' data("groceryElog")
@@ -90,7 +94,7 @@ xbgcnbd.EstimateParameters <- function(cal.cbs, k = NULL,
         break  # stop if parameters could not be estimated, e.g. if xbgcnbd.LL returns Inf
       }
       LL[k] <- xbgcnbd.cbs.LL(params = params[[k]], cal.cbs = cal.cbs, dropout_at_zero = dropout_at_zero)
-      if (k > 4 && LL[k] < LL[k - 1] && LL[k - 1] < LL[k - 2])
+      if (k > 2 && LL[k] < LL[k - 1] && LL[k - 1] < LL[k - 2])
         break  # stop if LL gets worse for increasing k
     }
     k <- which.max(LL)
@@ -149,7 +153,10 @@ xbgcnbd.EstimateParameters <- function(cal.cbs, k = NULL,
 #' @return For \code{bgcnbd.cbs.LL}, the total log-likelihood of the provided
 #'   data. For \code{bgcnbd.LL}, a vector of log-likelihoods as long as the
 #'   longest input vector (\code{x}, \code{t.x}, or \code{T.cal}).
-#' @references Platzer Michael, and Thomas Reutterer (submitted)
+#' @references (M)BG/CNBD-k: Reutterer, T., Platzer, M., & Schroeder, N. (2020).
+#'   Leveraging purchase regularity for predicting customer behavior the easy
+#'   way. International Journal of Research in Marketing.
+#'   \doi{10.1016/j.ijresmar.2020.09.002}
 #' @export
 mbgcnbd.cbs.LL <- function(params, cal.cbs) {
   xbgcnbd.cbs.LL(params, cal.cbs, dropout_at_zero = TRUE)
@@ -257,7 +264,10 @@ xbgcnbd.LL <- function(params, x, t.x, T.cal, litt, dropout_at_zero = NULL) {
 #'   vector, then the output will be a vector as well. If both are vectors, the
 #'   output will be a matrix.
 #' @export
-#' @references Platzer Michael, and Thomas Reutterer (submitted)
+#' @references (M)BG/CNBD-k: Reutterer, T., Platzer, M., & Schroeder, N. (2020).
+#'   Leveraging purchase regularity for predicting customer behavior the easy
+#'   way. International Journal of Research in Marketing.
+#'   \doi{10.1016/j.ijresmar.2020.09.002}
 #' @examples
 #' \dontrun{
 #' data("groceryElog")
@@ -302,12 +312,18 @@ xbgcnbd.pmf <- function(params, t, x, dropout_at_zero = NULL) {
 #' (for whom we have no prior information) is expected to make in a given time
 #' period, i.e. \eqn{E(X(t) | k, r, alpha, a, b)}.
 #'
+#' Note: Computational time increases with the number of unique values of
+#' \code{t}.
+#'
 #' @param params A vector with model parameters \code{k}, \code{r},
 #'   \code{alpha}, \code{a} and \code{b}, in that order.
 #' @param t Length of time for which we are calculating the expected number of repeat transactions.
 #' @return Number of repeat transactions a customer is expected to make in a time period of length t.
 #' @export
-#' @references Platzer Michael, and Thomas Reutterer (submitted)
+#' @references (M)BG/CNBD-k: Reutterer, T., Platzer, M., & Schroeder, N. (2020).
+#'   Leveraging purchase regularity for predicting customer behavior the easy
+#'   way. International Journal of Research in Marketing.
+#'   \doi{10.1016/j.ijresmar.2020.09.002}
 #' @examples
 #' \dontrun{
 #' data("groceryElog")
@@ -367,7 +383,10 @@ xbgcnbd.Expectation <- function(params, t, dropout_at_zero = NULL) {
 #' @return Probability that the customer is still alive at the end of the
 #'   calibration period.
 #' @export
-#' @references Platzer Michael, and Thomas Reutterer (submitted)
+#' @references (M)BG/CNBD-k: Reutterer, T., Platzer, M., & Schroeder, N. (2020).
+#'   Leveraging purchase regularity for predicting customer behavior the easy
+#'   way. International Journal of Research in Marketing.
+#'   \doi{10.1016/j.ijresmar.2020.09.002}
 #' @examples
 #' \dontrun{
 #' data("groceryElog")
@@ -451,7 +470,10 @@ xbgcnbd.PAlive <- function(params, x, t.x, T.cal, dropout_at_zero = NULL) {
 #'   parameters has a length greater than 1, this will be a vector of expected
 #'   number of transactions.
 #' @export
-#' @references Platzer Michael, and Thomas Reutterer (submitted)
+#' @references (M)BG/CNBD-k: Reutterer, T., Platzer, M., & Schroeder, N. (2020).
+#'   Leveraging purchase regularity for predicting customer behavior the easy
+#'   way. International Journal of Research in Marketing.
+#'   \doi{10.1016/j.ijresmar.2020.09.002}
 #' @examples
 #' \dontrun{
 #' data("groceryElog")
@@ -558,7 +580,7 @@ xbgcnbd.ConditionalExpectedTransactions <- function(params, T.star, x, t.x, T.ca
 #'
 #' @param params A vector with model parameters \code{k}, \code{r},
 #'   \code{alpha}, \code{a} and \code{b}, in that order.
-#' @param cal.cbs calibration period CBS (customer by sufficient statistic). It
+#' @param cal.cbs Calibration period CBS (customer by sufficient statistic). It
 #'   must contain columns for frequency ('x') and total time observed ('T.cal').
 #' @param censor Cutoff point for number of transactions in plot.
 #' @param xlab Descriptive label for the x axis.
@@ -567,7 +589,10 @@ xbgcnbd.ConditionalExpectedTransactions <- function(params, T.star, x, t.x, T.ca
 #' @return Calibration period repeat transaction frequency comparison matrix
 #'   (actual vs. expected).
 #' @export
-#' @references Platzer Michael, and Thomas Reutterer (submitted)
+#' @references (M)BG/CNBD-k: Reutterer, T., Platzer, M., & Schroeder, N. (2020).
+#'   Leveraging purchase regularity for predicting customer behavior the easy
+#'   way. International Journal of Research in Marketing.
+#'   \doi{10.1016/j.ijresmar.2020.09.002}
 #' @examples
 #' \dontrun{
 #' data("groceryElog")
@@ -635,6 +660,9 @@ xbgcnbd.PlotFrequencyInCalibration <- function(params, cal.cbs, censor = 7,
 #' Calculates the expected cumulative total repeat transactions by all customers
 #' for the calibration and holdout periods.
 #'
+#' Note: Computational time increases with the number of unique values of
+#' \code{T.cal}.
+#'
 #' @param params A vector with model parameters \code{k}, \code{r},
 #'   \code{alpha}, \code{a} and \code{b}, in that order.
 #' @param T.cal A vector to represent customers' calibration period lengths.
@@ -673,7 +701,7 @@ xbgcnbd.ExpectedCumulativeTransactions <- function(params, T.cal, T.tot, n.perio
   if (any(T.cal < 0) || !is.numeric(T.cal))
     stop("T.cal must be numeric and may not contain negative numbers.")
   if (length(T.tot) > 1 || T.tot < 0 || !is.numeric(T.tot))
-    stop("T.cal must be a single numeric value and may not be negative.")
+    stop("T.tot must be a single numeric value and may not be negative.")
   if (length(n.periods.final) > 1 || n.periods.final < 0 || !is.numeric(n.periods.final))
     stop("n.periods.final must be a single numeric value and may not be negative.")
 
@@ -696,6 +724,9 @@ xbgcnbd.ExpectedCumulativeTransactions <- function(params, T.cal, T.tot, n.perio
 #' customers for the calibration and holdout periods, and returns this
 #' comparison in a matrix.
 #'
+#' Note: Computational time increases with the number of unique values of
+#' \code{T.cal}.
+#'
 #' @param params A vector with model parameters \code{k}, \code{r},
 #'   \code{alpha}, \code{a} and \code{b}, in that order.
 #' @param T.cal A vector to represent customers' calibration period lengths.
@@ -708,9 +739,10 @@ xbgcnbd.ExpectedCumulativeTransactions <- function(params, T.cal, T.tot, n.perio
 #' @param xticklab A vector containing a label for each tick mark on the x axis.
 #' @param title Title placed on the top-center of the plot.
 #' @param ymax Upper boundary for y axis.
+#' @param legend plot legend, defaults to `Actual` and `Model`.
 #' @return Matrix containing actual and expected cumulative repeat transactions.
 #' @export
-#' @seealso \code{\link{bgcnbd.PlotTrackingInc}}
+#' @seealso \code{\link{mbgcnbd.ExpectedCumulativeTransactions}}
 #' @examples
 #' \dontrun{
 #' data("groceryElog")
@@ -724,9 +756,10 @@ xbgcnbd.ExpectedCumulativeTransactions <- function(params, T.cal, T.tot, n.perio
 mbgcnbd.PlotTrackingCum <- function(params, T.cal, T.tot, actual.cu.tracking.data,
                                     xlab = "Week", ylab = "Cumulative Transactions",
                                     xticklab = NULL, title = "Tracking Cumulative Transactions",
-                                    ymax = NULL) {
+                                    ymax = NULL, legend = c("Actual", "Model")) {
   xbgcnbd.PlotTrackingCum(params, T.cal, T.tot, actual.cu.tracking.data,
-                          xlab, ylab, xticklab, title, ymax, dropout_at_zero = TRUE)
+                          xlab, ylab, xticklab, title, ymax, dropout_at_zero = TRUE,
+                          legend = legend)
 }
 
 #' @rdname mbgcnbd.PlotTrackingCum
@@ -734,16 +767,18 @@ mbgcnbd.PlotTrackingCum <- function(params, T.cal, T.tot, actual.cu.tracking.dat
 bgcnbd.PlotTrackingCum <- function(params, T.cal, T.tot, actual.cu.tracking.data,
                                     xlab = "Week", ylab = "Cumulative Transactions",
                                     xticklab = NULL, title = "Tracking Cumulative Transactions",
-                                    ymax = NULL) {
+                                    ymax = NULL, legend = c("Actual", "Model")) {
   xbgcnbd.PlotTrackingCum(params, T.cal, T.tot, actual.cu.tracking.data,
-                          xlab, ylab, xticklab, title, ymax, dropout_at_zero = FALSE)
+                          xlab, ylab, xticklab, title, ymax, dropout_at_zero = FALSE,
+                          legend = legend)
 }
 
 #' @keywords internal
 xbgcnbd.PlotTrackingCum <- function(params, T.cal, T.tot, actual.cu.tracking.data,
                                     xlab = "Week", ylab = "Cumulative Transactions",
                                     xticklab = NULL, title = "Tracking Cumulative Transactions",
-                                    ymax = NULL, dropout_at_zero = NULL) {
+                                    ymax = NULL, dropout_at_zero = NULL,
+                                    legend = c("Actual", "Model")) {
 
   stopifnot(!is.null(dropout_at_zero))
   actual <- actual.cu.tracking.data
@@ -751,7 +786,8 @@ xbgcnbd.PlotTrackingCum <- function(params, T.cal, T.tot, actual.cu.tracking.dat
                                                      dropout_at_zero = dropout_at_zero)
 
   dc.PlotTracking(actual = actual, expected = expected, T.cal = T.cal,
-                  xlab = xlab, ylab = ylab, title = title, xticklab = xticklab, ymax = ymax)
+                  xlab = xlab, ylab = ylab, title = title, xticklab = xticklab, ymax = ymax,
+                  legend = legend)
 }
 
 
@@ -761,6 +797,9 @@ xbgcnbd.PlotTrackingCum <- function(params, T.cal, T.tot, actual.cu.tracking.dat
 #' Plots the actual and expected incremental total repeat transactions by all
 #' customers for the calibration and holdout periods, and returns this
 #' comparison in a matrix.
+#'
+#' Note: Computational time increases with the number of unique values of
+#' \code{T.cal}.
 #'
 #' @param params A vector with model parameters \code{k}, \code{r},
 #'   \code{alpha}, \code{a} and \code{b}, in that order.
@@ -774,9 +813,10 @@ xbgcnbd.PlotTrackingCum <- function(params, T.cal, T.tot, actual.cu.tracking.dat
 #' @param xticklab A vector containing a label for each tick mark on the x axis.
 #' @param title Title placed on the top-center of the plot.
 #' @param ymax Upper boundary for y axis.
+#' @param legend plot legend, defaults to `Actual` and `Model`.
 #' @return Matrix containing actual and expected incremental repeat transactions.
 #' @export
-#' @seealso \code{\link{bgcnbd.PlotTrackingCum}}
+#' @seealso \code{\link{mbgcnbd.ExpectedCumulativeTransactions}}
 #' @examples
 #' \dontrun{
 #' data("groceryElog")
@@ -790,9 +830,10 @@ xbgcnbd.PlotTrackingCum <- function(params, T.cal, T.tot, actual.cu.tracking.dat
 mbgcnbd.PlotTrackingInc <- function(params, T.cal, T.tot, actual.inc.tracking.data,
                                     xlab = "Week", ylab = "Transactions",
                                     xticklab = NULL, title = "Tracking Weekly Transactions",
-                                    ymax = NULL) {
+                                    ymax = NULL, legend = c("Actual", "Model")) {
   xbgcnbd.PlotTrackingInc(params, T.cal, T.tot, actual.inc.tracking.data,
-                          xlab, ylab, xticklab, title, ymax, dropout_at_zero = TRUE)
+                          xlab, ylab, xticklab, title, ymax, dropout_at_zero = TRUE,
+                          legend = legend)
 }
 
 #' @rdname mbgcnbd.PlotTrackingInc
@@ -800,16 +841,18 @@ mbgcnbd.PlotTrackingInc <- function(params, T.cal, T.tot, actual.inc.tracking.da
 bgcnbd.PlotTrackingInc <- function(params, T.cal, T.tot, actual.inc.tracking.data,
                                     xlab = "Week", ylab = "Transactions",
                                     xticklab = NULL, title = "Tracking Weekly Transactions",
-                                    ymax = NULL) {
+                                    ymax = NULL, legend = c("Actual", "Model")) {
   xbgcnbd.PlotTrackingInc(params, T.cal, T.tot, actual.inc.tracking.data,
-                          xlab, ylab, xticklab, title, ymax, dropout_at_zero = FALSE)
+                          xlab, ylab, xticklab, title, ymax, dropout_at_zero = FALSE,
+                          legend = legend)
 }
 
 #' @keywords internal
 xbgcnbd.PlotTrackingInc <- function(params, T.cal, T.tot, actual.inc.tracking.data,
                                     xlab = "Week", ylab = "Transactions",
                                     xticklab = NULL, title = "Tracking Weekly Transactions",
-                                    ymax = NULL, dropout_at_zero = NULL) {
+                                    ymax = NULL, dropout_at_zero = NULL,
+                                    legend = c("Actual", "Model")) {
 
   stopifnot(!is.null(dropout_at_zero))
   actual <- actual.inc.tracking.data
@@ -818,7 +861,113 @@ xbgcnbd.PlotTrackingInc <- function(params, T.cal, T.tot, actual.inc.tracking.da
   expected <- BTYD::dc.CumulativeToIncremental(expected_cum)
 
   dc.PlotTracking(actual = actual, expected = expected, T.cal = T.cal,
-                  xlab = xlab, ylab = ylab, title = title, xticklab = xticklab, ymax = ymax)
+                  xlab = xlab, ylab = ylab, title = title, xticklab = xticklab, ymax = ymax,
+                  legend = legend)
+}
+
+
+
+#' (M)BG/CNBD-k Plot Frequency vs. Conditional Expected Frequency
+#'
+#' Plots the actual and conditional expected number transactions made by
+#' customers in the holdout period, binned according to calibration period
+#' frequencies, and returns this comparison in a matrix.
+#'
+#' @param params A vector with model parameters \code{k}, \code{r},
+#'   \code{alpha}, \code{a} and \code{b}, in that order.
+#' @param T.star Length of the holdout period.
+#' @param cal.cbs Calibration period CBS (customer by sufficient statistic). It
+#'   must contain columns for frequency ('x'), recency ('t.x') and total time
+#'   observed ('T.cal').
+#' @param x.star Vector of transactions made by each customer in the holdout period.
+#' @param censor Cutoff point for number of transactions in plot.
+#' @param xlab Descriptive label for the x axis.
+#' @param ylab Descriptive label for the x axis.
+#' @param xticklab A vector containing a label for each tick mark on the x axis.
+#' @param title Title placed on the top-center of the plot.
+#' @return Holdout period transaction frequency comparison matrix (actual vs. expected).
+#' @export
+#' @seealso \code{\link{bgcnbd.PlotFreqVsConditionalExpectedFrequency}}
+#' @examples
+#' \dontrun{
+#' data("groceryElog")
+#' cbs <- elog2cbs(groceryElog, T.cal = "2006-09-30")
+#' params <- mbgcnbd.EstimateParameters(cbs, k=2)
+#' mbgcnbd.PlotFreqVsConditionalExpectedFrequency(params, T.star=52, cbs, cbs$x.star, censor=7)
+#' }
+mbgcnbd.PlotFreqVsConditionalExpectedFrequency <- function(params, T.star, cal.cbs, x.star,
+                                                          censor, xlab = "Calibration period transactions",
+                                                          ylab = "Holdout period transactions", xticklab = NULL,
+                                                          title = "Conditional Expectation") {
+  x.star.est <- mbgcnbd.ConditionalExpectedTransactions(params, T.star, cal.cbs$x, cal.cbs$t.x, cal.cbs$T.cal)
+  dc.PlotFreqVsConditionalExpectedFrequency(x = cal.cbs$x, actual = x.star, expected = x.star.est,
+                                            censor = censor, xlab = xlab, ylab = ylab, xticklab = xticklab,
+                                            title = title)
+}
+
+#' @rdname mbgcnbd.PlotFreqVsConditionalExpectedFrequency
+#' @export
+bgcnbd.PlotFreqVsConditionalExpectedFrequency <- function(params, T.star, cal.cbs, x.star,
+                                                          censor, xlab = "Calibration period transactions",
+                                                          ylab = "Holdout period transactions", xticklab = NULL,
+                                                          title = "Conditional Expectation") {
+  x.star.est <- bgcnbd.ConditionalExpectedTransactions(params, T.star, cal.cbs$x, cal.cbs$t.x, cal.cbs$T.cal)
+  dc.PlotFreqVsConditionalExpectedFrequency(x = cal.cbs$x, actual = x.star, expected = x.star.est,
+                                            censor = censor, xlab = xlab, ylab = ylab, xticklab = xticklab,
+                                            title = title)
+}
+
+
+
+#' (M)BG/CNBD-k Plot Actual vs. Conditional Expected Frequency by Recency
+#'
+#' Plots the actual and conditional expected number transactions made by
+#' customers in the holdout period, binned according to calibration period
+#' recencies, and returns this comparison in a matrix.
+#'
+#' @param params A vector with model parameters \code{k}, \code{r},
+#'   \code{alpha}, \code{a} and \code{b}, in that order.
+#' @param cal.cbs Calibration period CBS (customer by sufficient statistic). It
+#'   must contain columns for frequency ('x'), recency ('t.x') and total time
+#'   observed ('T.cal').
+#' @param T.star Length of the holdout period.
+#' @param x.star Vector of transactions made by each customer in the holdout period.
+#' @param xlab Descriptive label for the x axis.
+#' @param ylab Descriptive label for the x axis.
+#' @param xticklab A vector containing a label for each tick mark on the x axis.
+#' @param title Title placed on the top-center of the plot.
+#' @return Matrix comparing actual and conditional expected transactions in the holdout period.
+#' @export
+#' @seealso \code{\link{bgcnbd.PlotFreqVsConditionalExpectedFrequency}}
+#' @examples
+#' \dontrun{
+#' data("groceryElog")
+#' cbs <- elog2cbs(groceryElog, T.cal = "2006-09-30")
+#' params <- mbgcnbd.EstimateParameters(cbs, k=2)
+#' mbgcnbd.PlotRecVsConditionalExpectedFrequency(params, cbs, T.star=52, cbs$x.star)
+#' }
+mbgcnbd.PlotRecVsConditionalExpectedFrequency <- function(
+                                       params, cal.cbs, T.star, x.star,
+                                       xlab = "Calibration period recency",
+                                       ylab = "Holdout period transactions", xticklab = NULL,
+                                       title = "Actual vs. Conditional Expected Transactions by Recency") {
+  x.star.est <- mbgcnbd.ConditionalExpectedTransactions(params, T.star, cal.cbs$x, cal.cbs$t.x, cal.cbs$T.cal)
+  dc.PlotRecVsConditionalExpectedFrequency(t.x = cal.cbs$t.x, actual = x.star, expected = x.star.est,
+                                            xlab = xlab, ylab = ylab, xticklab = xticklab,
+                                            title = title)
+}
+
+#' @rdname mbgcnbd.PlotRecVsConditionalExpectedFrequency
+#' @export
+bgcnbd.PlotRecVsConditionalExpectedFrequency <- function(
+                                      params, cal.cbs, T.star, x.star,
+                                      xlab = "Calibration period recency",
+                                      ylab = "Holdout period transactions", xticklab = NULL,
+                                      title = "Actual vs. Conditional Expected Transactions by Recency") {
+  x.star.est <- bgcnbd.ConditionalExpectedTransactions(params, T.star, cal.cbs$x, cal.cbs$t.x, cal.cbs$T.cal)
+  dc.PlotRecVsConditionalExpectedFrequency(t.x = cal.cbs$t.x, actual = x.star, expected = x.star.est,
+                                            xlab = xlab, ylab = ylab, xticklab = xticklab,
+                                            title = title)
 }
 
 
@@ -837,10 +986,13 @@ xbgcnbd.PlotTrackingInc <- function(params, T.cal, T.tot, actual.inc.tracking.da
 #' \item{\code{cbs}}{A data.frame with a row for each customer and the summary statistic as columns.}
 #' \item{\code{elog}}{A data.frame with a row for each transaction, and columns \code{cust}, \code{date} and \code{t}.}
 #' @export
-#' @references Platzer Michael, and Thomas Reutterer (submitted)
+#' @references (M)BG/CNBD-k: Reutterer, T., Platzer, M., & Schroeder, N. (2020).
+#'   Leveraging purchase regularity for predicting customer behavior the easy
+#'   way. International Journal of Research in Marketing.
+#'   \doi{10.1016/j.ijresmar.2020.09.002}
 #' @examples
 #' params <- c(k = 3, r = 0.85, alpha = 1.45, a = 0.79, b = 2.42)
-#' data <- mbgcnbd.GenerateData(n = 1000, T.cal = 24, T.star = 32, params)
+#' data <- mbgcnbd.GenerateData(n = 200, T.cal = 24, T.star = 32, params)
 #'
 #' # customer by sufficient summary statistic - one row per customer
 #' head(data$cbs)
@@ -881,9 +1033,11 @@ xbgcnbd.GenerateData <- function(n, T.cal, T.star = NULL, params, date.zero = "2
 
   # sample churn-probability p for each customer
   ps <- rbeta(n, a, b)
+  ps <- pmax(ps, 1e-5) # avoid `too long` lives
 
   # sample number of survivals via geometric distribution
   churns <- rgeom(n, ps)
+  churns <- pmin(churns, 1e5) # avoid `too long` lives
   if (!dropout_at_zero) churns <- churns + 1
 
   # sample intertransaction timings

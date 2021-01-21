@@ -4,8 +4,12 @@
 \alias{pggg.plotRegularityRateHeterogeneity}
 \title{Pareto/GGG Plot Regularity Rate Heterogeneity}
 \usage{
-pggg.plotRegularityRateHeterogeneity(draws, xmax = NULL, fn = NULL,
-  title = "Distribution of Regularity Rate k")
+pggg.plotRegularityRateHeterogeneity(
+  draws,
+  xmax = NULL,
+  fn = NULL,
+  title = "Distribution of Regularity Rate k"
+)
 }
 \arguments{
 \item{draws}{MCMC draws as returned by \code{\link{pggg.mcmc.DrawParameters}}.}
@@ -28,6 +32,7 @@ param.draws <- pggg.mcmc.DrawParameters(cbs,
 pggg.plotRegularityRateHeterogeneity(param.draws)
 }
 \references{
-Platzer, Michael, and Thomas Reutterer. 'Ticking Away the Moments: Timing Regularity Helps to Better Predict Customer Activity.' Marketing Science (2016).
+Platzer, M., & Reutterer, T. (2016). Ticking away the moments:
+  Timing regularity helps to better predict customer activity. Marketing
+  Science, 35(5), 779-799. \doi{10.1287/mksc.2015.0963}
 }
-

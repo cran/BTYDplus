@@ -9,7 +9,7 @@
 #' data("groceryElog")
 #' cbs <- elog2cbs(groceryElog)
 #' param.draws <- pnbd.mcmc.DrawParameters(cbs,
-#'   mcmc = 200, burnin = 100, thin = 20, chains = 1) # short MCMC to run demo fast
+#'   mcmc = 100, burnin = 50, thin = 10, chains = 1) # short MCMC to run demo fast
 #' palive <- mcmc.PAlive(param.draws)
 #' head(palive)
 #' mean(palive)
@@ -40,7 +40,7 @@ mcmc.PAlive <- function(draws) {
 #' data("groceryElog")
 #' cbs <- elog2cbs(groceryElog, T.cal = "2006-12-31")
 #' param.draws <- pnbd.mcmc.DrawParameters(cbs,
-#'   mcmc = 200, burnin = 100, thin = 20, chains = 1) # short MCMC to run demo fast
+#'   mcmc = 100, burnin = 50, thin = 10, chains = 1) # short MCMC to run demo fast
 #' xstar.draws <- mcmc.DrawFutureTransactions(cbs, param.draws)
 #' cbs$xstar.est <- apply(xstar.draws, 2, mean)
 #' cbs$pactive <- mcmc.PActive(xstar.draws)
@@ -129,7 +129,7 @@ mcmc.DrawFutureTransactions <- function(cal.cbs, draws, T.star = cal.cbs$T.star,
 #' data("groceryElog")
 #' cbs <- elog2cbs(groceryElog, T.cal = "2006-12-31")
 #' param.draws <- pnbd.mcmc.DrawParameters(cbs,
-#'   mcmc = 200, burnin = 100, thin = 20, chains = 1) # short MCMC to run demo fast
+#'   mcmc = 100, burnin = 50, thin = 10, chains = 1) # short MCMC to run demo fast
 #' xstar.draws <- mcmc.DrawFutureTransactions(cbs, param.draws)
 #' cbs$pactive <- mcmc.PActive(xstar.draws)
 #' head(cbs)
@@ -148,8 +148,8 @@ mcmc.PActive <- function(xstar) {
 #' data("groceryElog")
 #' cbs <- elog2cbs(groceryElog)
 #' param.draws <- pnbd.mcmc.DrawParameters(cbs,
-#'   mcmc = 200, burnin = 100, thin = 20, chains = 1) # short MCMC to run demo fast
-#' param.draws.stable <- mcmc.setBurnin(param.draws, burnin = 200)
+#'   mcmc = 100, burnin = 50, thin = 10, chains = 1) # short MCMC to run demo fast
+#' param.draws.stable <- mcmc.setBurnin(param.draws, burnin = 80)
 mcmc.setBurnin <- function(draws, burnin) {
   if (burnin < start(draws$level_2) | burnin > end(draws$level_2))
     stop("specified burnin is out of bound: ", start(draws$level_2), " - ", end(draws$level_2))
@@ -170,7 +170,7 @@ mcmc.setBurnin <- function(draws, burnin) {
 #' data("groceryElog")
 #' cbs <- elog2cbs(groceryElog, T.cal = "2006-12-31")
 #' param.draws <- pnbd.mcmc.DrawParameters(cbs,
-#'   mcmc = 200, burnin = 100, thin = 20, chains = 1) # short MCMC to run demo fast
+#'   mcmc = 100, burnin = 50, thin = 10, chains = 1) # short MCMC to run demo fast
 #' xstar.draws <- mcmc.DrawFutureTransactions(cbs, param.draws)
 #' mcmc.plotPActiveDiagnostic(cbs, xstar.draws)
 mcmc.plotPActiveDiagnostic <- function(cbs, xstar, title = "Diagnostic Plot for P(active)") {
@@ -207,6 +207,8 @@ mcmc.plotPActiveDiagnostic <- function(cbs, xstar, title = "Diagnostic Plot for 
 #' @param x Number of transactions for which probability is calculated. May also
 #'   be a vector.
 #' @param sample_size Sample size for estimating the probability distribution.
+#' @param covariates (optional) Matrix of covariates, for Pareto/NBD (Abe)
+#'   model, passed to \code{\link{abe.GenerateData}} for simulating data.
 #' @return \eqn{P(X(t)=x)}. If either \code{t} or \code{x} is a vector, then the
 #'   output will be a vector as well. If both are vectors, the output will be a
 #'   matrix.
@@ -215,10 +217,9 @@ mcmc.plotPActiveDiagnostic <- function(cbs, xstar, title = "Diagnostic Plot for 
 #' data("groceryElog")
 #' cbs <- elog2cbs(groceryElog)
 #' param.draws <- pnbd.mcmc.DrawParameters(cbs,
-#'   mcmc = 200, burnin = 100, thin = 20, chains = 1) # short MCMC to run demo fast
-#' mcmc.pmf(param.draws, t = 52, x = 0:6)
+#'   mcmc = 100, burnin = 50, thin = 10, chains = 1) # short MCMC to run demo fast
 #' mcmc.pmf(param.draws, t = c(26, 52), x = 0:6)
-mcmc.pmf <- function(draws, t, x, sample_size = 10000) {
+mcmc.pmf <- function(draws, t, x, sample_size = 10000, covariates = NULL) {
   cohort_draws <- as.matrix(draws$level_2)
   nr_of_draws <- nrow(cohort_draws)
   # use posterior mean
@@ -238,7 +239,8 @@ mcmc.pmf <- function(draws, t, x, sample_size = 10000) {
                                p["cov_log_lambda_log_mu"],
                                p["var_log_mu"]),
                              ncol = 2)
-      abe.GenerateData(n = n, T.cal = 0, T.star = unique(t), params = params)$cbs
+      abe.GenerateData(n = n, T.cal = 0, T.star = unique(t), params = params,
+                       covariates = covariates)$cbs
     }
   }))
   pmf <- sapply(1:length(t), function(idx) {
@@ -274,7 +276,7 @@ mcmc.pmf <- function(draws, t, x, sample_size = 10000) {
 #' data("groceryElog")
 #' cbs <- elog2cbs(groceryElog)
 #' param.draws <- pnbd.mcmc.DrawParameters(cbs,
-#'   mcmc = 200, burnin = 100, thin = 20, chains = 1) # short MCMC to run demo fast
+#'   mcmc = 100, burnin = 50, thin = 10, chains = 1) # short MCMC to run demo fast
 #' mcmc.Expectation(param.draws, t = c(26, 52))
 mcmc.Expectation <- function(draws, t, sample_size = 10000) {
   pmf <- mcmc.pmf(draws, t, 0:100, sample_size = sample_size)
@@ -302,6 +304,8 @@ mcmc.Expectation <- function(draws, t, sample_size = 10000) {
 #' @param n.periods.final Number of time periods in the calibration and holdout
 #'   periods.
 #' @param sample_size Sample size for estimating the probability distribution.
+#' @param covariates (optional) Matrix of covariates, for Pareto/NBD (Abe)
+#'   model, passed to \code{\link{abe.GenerateData}} for simulating data.
 #' @return Numeric vector of expected cumulative total repeat transactions by
 #'   all customers.
 #' @export
@@ -309,12 +313,13 @@ mcmc.Expectation <- function(draws, t, sample_size = 10000) {
 #' data("groceryElog")
 #' cbs <- elog2cbs(groceryElog)
 #' param.draws <- pnbd.mcmc.DrawParameters(cbs,
-#'   mcmc = 200, burnin = 100, thin = 20, chains = 1) # short MCMC to run demo fast
+#'   mcmc = 100, burnin = 50, thin = 10, chains = 1) # short MCMC to run demo fast
 #' # Returns a vector containing expected cumulative repeat transactions for 104
 #' # weeks, with every eigth week being reported.
 #' mcmc.ExpectedCumulativeTransactions(param.draws,
 #'   T.cal = cbs$T.cal, T.tot = 104, n.periods.final = 104/8, sample_size = 1000)
-mcmc.ExpectedCumulativeTransactions <- function(draws, T.cal, T.tot, n.periods.final, sample_size = 10000) {
+mcmc.ExpectedCumulativeTransactions <- function(draws, T.cal, T.tot, n.periods.final,
+                                                sample_size = 10000, covariates = NULL) {
   if (any(T.cal < 0) || !is.numeric(T.cal))
     stop("T.cal must be numeric and may not contain negative numbers.")
   if (length(T.tot) > 1 || T.tot < 0 || !is.numeric(T.tot))
@@ -333,13 +338,14 @@ mcmc.ExpectedCumulativeTransactions <- function(draws, T.cal, T.tot, n.periods.f
     } else if (model == "abe") {
       p <- as.list(cohort_draws[i, ])
       params <- list()
-      params$beta  <- matrix(p[grepl("^log\\_", names(p))], byrow = TRUE, ncol = 2)
-      params$gamma <- matrix(c(p["var_log_lambda"],
+      params$beta  <- matrix(as.numeric(p[grepl("^log\\_", names(p))]), byrow = TRUE, ncol = 2)
+      params$gamma <- matrix(as.numeric(c(p["var_log_lambda"],
                                p["cov_log_lambda_log_mu"],
                                p["cov_log_lambda_log_mu"],
-                               p["var_log_mu"]),
+                               p["var_log_mu"])),
                              ncol = 2)
-      elog <- abe.GenerateData(n = n, T.cal = T.tot, T.star = 0, params = params)$elog
+      elog <- abe.GenerateData(n = n, T.cal = T.tot, T.star = 0, params = params,
+                               covariates = covariates)$elog
     }
     setDT(elog)
     elog$cust <- paste0(elog$cust, "_", i)
@@ -389,6 +395,9 @@ mcmc.ExpectedCumulativeTransactions <- function(draws, T.cal, T.tot, n.periods.f
 #' @param ymax Upper boundary for y axis.
 #' @param sample_size Sample size for estimating the probability distribution.
 #'   See \code{\link{mcmc.ExpectedCumulativeTransactions}}.
+#' @param covariates (optional) Matrix of covariates, for Pareto/NBD (Abe)
+#'   model, passed to \code{\link{abe.GenerateData}} for simulating data.
+#' @param legend plot legend, defaults to `Actual` and `Model`.
 #' @return Matrix containing actual and expected cumulative repeat transactions.
 #' @export
 #' @seealso \code{\link{mcmc.PlotTrackingInc}}
@@ -407,14 +416,17 @@ mcmc.ExpectedCumulativeTransactions <- function(draws, T.cal, T.tot, n.periods.f
 mcmc.PlotTrackingCum <- function(draws, T.cal, T.tot, actual.cu.tracking.data,
                                  xlab = "Week", ylab = "Cumulative Transactions",
                                  xticklab = NULL, title = "Tracking Cumulative Transactions",
-                                 ymax = NULL, sample_size = 10000) {
+                                 ymax = NULL, sample_size = 10000, covariates = NULL,
+                                 legend = c("Actual", "Model")) {
 
   actual <- actual.cu.tracking.data
-  expected <- mcmc.ExpectedCumulativeTransactions(draws, T.cal, T.tot, length(actual), sample_size = sample_size)
+  expected <- mcmc.ExpectedCumulativeTransactions(draws, T.cal, T.tot, length(actual),
+                                                  sample_size = sample_size, covariates = covariates)
 
   dc.PlotTracking(actual = actual, expected = expected, T.cal = T.cal,
                   xlab = xlab, ylab = ylab, title = title,
-                  xticklab = xticklab, ymax = ymax)
+                  xticklab = xticklab, ymax = ymax,
+                  legend = legend)
 }
 
 
@@ -445,6 +457,9 @@ mcmc.PlotTrackingCum <- function(draws, T.cal, T.tot, actual.cu.tracking.data,
 #' @param ymax Upper boundary for y axis.
 #' @param sample_size Sample size for estimating the probability distribution.
 #'   See \code{\link{mcmc.ExpectedCumulativeTransactions}}.
+#' @param covariates (optional) Matrix of covariates, for Pareto/NBD (Abe)
+#'   model, passed to \code{\link{abe.GenerateData}} for simulating data.
+#' @param legend plot legend, defaults to `Actual` and `Model`.
 #' @return Matrix containing actual and expected incremental repeat
 #'   transactions.
 #' @export
@@ -464,15 +479,18 @@ mcmc.PlotTrackingCum <- function(draws, T.cal, T.tot, actual.cu.tracking.data,
 mcmc.PlotTrackingInc <- function(draws, T.cal, T.tot, actual.inc.tracking.data,
                                  xlab = "Week", ylab = "Transactions",
                                  xticklab = NULL, title = "Tracking Weekly Transactions",
-                                 ymax = NULL, sample_size = 10000) {
+                                 ymax = NULL, sample_size = 10000, covariates = NULL,
+                                 legend = c("Actual", "Model")) {
 
   actual <- actual.inc.tracking.data
-  expected_cum <- mcmc.ExpectedCumulativeTransactions(draws, T.cal, T.tot, length(actual), sample_size = sample_size)
+  expected_cum <- mcmc.ExpectedCumulativeTransactions(draws, T.cal, T.tot, length(actual),
+                                                      sample_size = sample_size, covariates = covariates)
   expected <- BTYD::dc.CumulativeToIncremental(expected_cum)
 
   dc.PlotTracking(actual = actual, expected = expected, T.cal = T.cal,
                   xlab = xlab, ylab = ylab, title = title,
-                  xticklab = xticklab, ymax = ymax)
+                  xticklab = xticklab, ymax = ymax,
+                  legend = legend)
 }
 
 
@@ -504,7 +522,7 @@ mcmc.PlotTrackingInc <- function(draws, T.cal, T.tot, actual.inc.tracking.data,
 #' data("groceryElog")
 #' cbs <- elog2cbs(groceryElog, T.cal = "2006-12-31")
 #' param.draws <- pnbd.mcmc.DrawParameters(cbs,
-#'   mcmc = 200, burnin = 100, thin = 20, chains = 1) # short MCMC to run demo fast
+#'   mcmc = 100, burnin = 50, thin = 10, chains = 1) # short MCMC to run demo fast
 #' mcmc.PlotFrequencyInCalibration(param.draws, cbs, sample_size = 100)
 #' }
 mcmc.PlotFrequencyInCalibration <- function(draws, cal.cbs, censor = 7,

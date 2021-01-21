@@ -6,17 +6,6 @@
 #'
 #' See \code{demo('pareto-ggg')} for how to apply this model.
 #'
-#' method 1) If \code{use_data_augmentation==TRUE} MCMC scheme takes advantage of
-#' conjugate priors for drawing lambda and mu, by augmenting the parameter space
-#' with unobserved lifetime 'tau' and activity status 'z'. See technical appendix
-#' to (Abe 2009).
-#'
-#' method 2) If \code{use_data_augmentation==FALSE} then implementation follows
-#' Shao-Hui Ma & Jin-Lan Liu paper
-#' \url{http://ieeexplore.ieee.org/xpls/abs_all.jsp?arnumber=4344404}, i.e. no data
-#' augmentation and draws on individual level need to be done via slice
-#' sampling. As such it is 10x slower than method 1)
-#'
 #' @param cal.cbs Calibration period customer-by-sufficient-statistic (CBS)
 #'   data.frame. It must contain a row for each customer, and columns \code{x}
 #'   for frequency, \code{t.x} for recency and \code{T.cal} for the total time
@@ -27,7 +16,7 @@
 #' @param thin Only every \code{thin}-th MCMC step will be returned.
 #' @param chains Number of MCMC chains to be run.
 #' @param mc.cores Number of cores to use in parallel (Unix only). Defaults to \code{min(chains, detectCores())}.
-#' @param use_data_augmentation determines MCMC method to be used
+#' @param use_data_augmentation deprecated
 #' @param param_init List of start values for cohort-level parameters.
 #' @param trace Print logging statement every \code{trace}-th iteration. Not available for \code{mc.cores > 1}.
 #' @return 2-element list:
@@ -37,13 +26,18 @@
 #' }
 #' @export
 #' @seealso \code{\link{pnbd.GenerateData} } \code{\link{mcmc.DrawFutureTransactions} } \code{\link{mcmc.PAlive} }
-#' @references Ma, Shao-Hui, and Jin-Lan Liu. 'The MCMC approach for solving the Pareto/NBD model and possible extensions.' Natural Computation, 2007. ICNC 2007. Third International Conference on. Vol. 2. IEEE, 2007. \url{http://ieeexplore.ieee.org/xpls/abs_all.jsp?arnumber=4344404}
-#' @references Abe, Makoto. 'Counting your customers one by one: A hierarchical Bayes extension to the Pareto/NBD model.' Marketing Science 28.3 (2009): 541-553.
+#' @references Ma, S. H., & Liu, J. L. (2007, August). The MCMC approach for
+#'   solving the Pareto/NBD model and possible extensions. In Third
+#'   international conference on natural computation (ICNC 2007) (Vol. 2, pp.
+#'   505-512). IEEE. \doi{10.1109/ICNC.2007.728}
+#' @references Abe, M. (2009). "Counting your customers" one by one: A
+#'   hierarchical Bayes extension to the Pareto/NBD model. Marketing Science,
+#'   28(3), 541-553. \doi{10.1287/mksc.1090.0502}
 #' @examples
 #' data("groceryElog")
 #' cbs <- elog2cbs(groceryElog, T.cal = "2006-12-31")
 #' param.draws <- pnbd.mcmc.DrawParameters(cbs,
-#'   mcmc = 200, burnin = 100, thin = 20, chains = 1) # short MCMC to run demo fast
+#'   mcmc = 100, burnin = 50, thin = 10, chains = 1) # short MCMC to run demo fast
 #'
 #' # cohort-level parameter draws
 #' as.matrix(param.draws$level_2)
@@ -124,30 +118,12 @@ pnbd.mcmc.DrawParameters <- function(cal.cbs, mcmc = 2500, burnin = 500, thin = 
     if (any(!alive)) {
       mu_lam_tx <- pmin(700, mu_lam[!alive] * tx[!alive])
       mu_lam_Tcal <- pmin(700, mu_lam[!alive] * Tcal[!alive])
-      # sample with http://en.wikipedia.org/wiki/Inverse_transform_sampling
+      # sample with https://en.wikipedia.org/wiki/Inverse_transform_sampling
       rand <- runif(n = sum(!alive))
       tau[!alive] <- -log((1 - rand) * exp(-mu_lam_tx) + rand * exp(-mu_lam_Tcal)) / mu_lam[!alive] # nolint
     }
 
     return(tau)
-  }
-
-  # ** methods to sample individual-level parameters (without data augmentation) **
-
-  draw_lambda_ma_liu <- function(data, level_1, level_2) {
-    slice_sample_ma_liu("lambda",
-                        x = data$x, tx = data$t.x, Tcal = data$T.cal,
-                        lambda = level_1["lambda", ], mu = level_1["mu", ],
-                        r = level_2["r"], alpha = level_2["alpha"],
-                        s = level_2["s"], beta = level_2["beta"])
-  }
-
-  draw_mu_ma_liu <- function(data, level_1, level_2) {
-    slice_sample_ma_liu("mu",
-                        x = data$x, tx = data$t.x, Tcal = data$T.cal,
-                        lambda = level_1["lambda", ], mu = level_1["mu", ],
-                        r = level_2["r"], alpha = level_2["alpha"],
-                        s = level_2["s"], beta = level_2["beta"])
   }
 
   run_single_chain <- function(chain_id = 1, data, hyper_prior) {
@@ -189,10 +165,6 @@ pnbd.mcmc.DrawParameters <- function(cal.cbs, mcmc = 2500, burnin = 500, thin = 
       }
 
       # draw individual-level parameters
-      draw_lambda <- if (use_data_augmentation)
-        draw_lambda else draw_lambda_ma_liu
-      draw_mu <- if (use_data_augmentation)
-        draw_mu else draw_mu_ma_liu
       level_1["lambda", ] <- draw_lambda(data, level_1, level_2)
       level_1["mu", ] <- draw_mu(data, level_1, level_2)
       level_1["tau", ] <- draw_tau(data, level_1)
@@ -267,7 +239,7 @@ pnbd.mcmc.DrawParameters <- function(cal.cbs, mcmc = 2500, burnin = 500, thin = 
 #' @export
 #' @examples
 #' params <- list(r = 5, alpha = 10, s = 0.8, beta = 12)
-#' data <- pnbd.GenerateData(n = 1000, T.cal = 32, T.star = 32, params)
+#' data <- pnbd.GenerateData(n = 200, T.cal = 32, T.star = 32, params)
 #' cbs <- data$cbs  # customer by sufficient summary statistic - one row per customer
 #' elog <- data$elog  # Event log - one row per event/purchase
 pnbd.GenerateData <- function(n, T.cal, T.star, params, date.zero = "2000-01-01") {

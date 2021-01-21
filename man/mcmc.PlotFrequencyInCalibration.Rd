@@ -4,9 +4,15 @@
 \alias{mcmc.PlotFrequencyInCalibration}
 \title{Frequency in Calibration Period for Pareto/GGG, Pareto/NBD (HB) and Pareto/NBD (Abe)}
 \usage{
-mcmc.PlotFrequencyInCalibration(draws, cal.cbs, censor = 7,
-  xlab = "Calibration period transactions", ylab = "Customers",
-  title = "Frequency of Repeat Transactions", sample_size = 1000)
+mcmc.PlotFrequencyInCalibration(
+  draws,
+  cal.cbs,
+  censor = 7,
+  xlab = "Calibration period transactions",
+  ylab = "Customers",
+  title = "Frequency of Repeat Transactions",
+  sample_size = 1000
+)
 }
 \arguments{
 \item{draws}{MCMC draws as returned by \code{*.mcmc.DrawParameters}}
@@ -44,11 +50,10 @@ based on the corresponding model.
 data("groceryElog")
 cbs <- elog2cbs(groceryElog, T.cal = "2006-12-31")
 param.draws <- pnbd.mcmc.DrawParameters(cbs,
-  mcmc = 200, burnin = 100, thin = 20, chains = 1) # short MCMC to run demo fast
+  mcmc = 100, burnin = 50, thin = 10, chains = 1) # short MCMC to run demo fast
 mcmc.PlotFrequencyInCalibration(param.draws, cbs, sample_size = 100)
 }
 }
 \seealso{
 \code{\link{mcmc.pmf}}
 }
-

@@ -219,77 +219,6 @@ NumericVector slice_sample_gamma_parameters(NumericVector data, NumericVector in
 
 
 
-
-
-
-// ********* Pareto / NBD **********
-
-
-// draw of individual-level posterior for Pareto/NBD (Ma/Liu)
-
-double post_lambda_ma_liu(NumericVector data, NumericVector params) {
-  double lambda_ = data[0];
-  double x       = params[0];
-  double tx      = params[1];
-  double Tcal    = params[2];
-//  double lambda = params[3];
-  double mu      = params[4];
-  double r       = params[5];
-  double alpha   = params[6];
-//  double s       = params[7];
-//  double beta    = params[8];
-  if ( log(mu+lambda_) - log(mu) < 1e-10 ) {
-    return -INFINITY; // avoid numeric underflow
-  } else {
-    return (r-1) * log(lambda_) - (lambda_*alpha) +
-      x * log(lambda_) - log(lambda_+mu) +
-      log(mu*exp(-tx*(lambda_+mu))+lambda_*exp(-Tcal*(lambda_+mu)));
-  }
-}
-
-double post_mu_ma_liu(NumericVector data, NumericVector params) {
-  double mu_    = data[0];
-  double x      = params[0];
-  double tx     = params[1];
-  double Tcal   = params[2];
-  double lambda = params[3];
-//  double mu     = params[4];
-//  double r      = params[5];
-//  double alpha  = params[6];
-  double s      = params[7];
-  double beta   = params[8];
-  if ( log(lambda+mu_) - log(lambda) < 1e-10 ) {
-    return -INFINITY; // avoid numeric underflow
-  } else {
-    return (s-1) * log(mu_) - (mu_*beta) +
-      x * log(lambda) - log(lambda+mu_) +
-      log(mu_*exp(-tx*(lambda+mu_))+lambda*exp(-Tcal*(lambda+mu_)));
-  }
-}
-
-
-// [[Rcpp::export]]
-NumericVector slice_sample_ma_liu(String what,
-                                  NumericVector x, NumericVector tx, NumericVector Tcal,
-                                  NumericVector lambda, NumericVector mu,
-                                  double r, double alpha, double s, double beta) {
-  int N = x.size();
-  NumericVector out(N);
-  for (int i=0; i<N; i++) {
-    // Rcpp::Rcout << i << " x:" << x[i] << " tx:" << tx[i] << " Tcal:" << Tcal[i] << " lambda:" << lambda[i] << " mu:" << mu[i] << " r:" << r << " alpha:" << alpha << " s:" << s << " beta:" << beta << " - " << std::endl;
-    NumericVector params = NumericVector::create(x[i], tx[i], Tcal[i], lambda[i], mu[i], r, alpha, s, beta);
-    if (what == "lambda") {
-      out[i] = slice_sample_cpp(post_lambda_ma_liu, params, NumericVector::create(lambda[i]), 3, 3 * sqrt(r) / alpha, 1e-5, 1e+5)[0];
-    } else if (what == "mu") {
-      out[i] = slice_sample_cpp(post_mu_ma_liu, params, NumericVector::create(mu[i]), 6, 3 * sqrt(s) / beta, 1e-5, 1e+5)[0];
-    }
-  }
-  return out;
-}
-
-
-
-
 // ********* Pareto / GGG **********
 
 
@@ -305,7 +234,7 @@ double pggg_palive_integrand(double x, double params[6]) {
 }
 
 double simpson38(double (*fn)(double, double[6]), double a, double b, double fn_params[6]) {
-  // http://en.wikipedia.org/wiki/Simpson%27s_rule#Simpson.27s_3.2F8_rule_.28for_n_intervals.29
+  // https://en.wikipedia.org/wiki/Simpson%27s_rule#Simpson.27s_3.2F8_rule_.28for_n_intervals.29
   double n = 12.0;
   double integral = (3.0/8.0) * ((b-a)/n) *
     (fn(a, fn_params) +
@@ -441,7 +370,7 @@ NumericVector pggg_slice_sample(String what,
 
 /*** R
   # unit-test slice sampling of pggg_post_tau, by comparing results to pareto/nbd (k=1),
-  #   where we can draw directly via http://en.wikipedia.org/wiki/Inverse_transform_sampling
+  #   where we can draw directly via https://en.wikipedia.org/wiki/Inverse_transform_sampling
   x <- 0
   tx <- 8
   Tcal <- 14

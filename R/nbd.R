@@ -10,8 +10,9 @@
 #' @param max.param.value Upper bound on parameters.
 #' @return List of estimated parameters.
 #' @export
-#' @references EHRENBERG, ASC. 'The Pattern of Consumer Purchases.' Quantitative
-#'   techniques in marketing analysis: text and readings (1962): 355.
+#' @references Ehrenberg, A. S. (1959). The pattern of consumer purchases.
+#'   Journal of the Royal Statistical Society: Series C (Applied Statistics),
+#'   8(1), 26-41. \doi{10.2307/2985810}
 #' @examples
 #' data("groceryElog")
 #' cbs <- elog2cbs(groceryElog)
@@ -147,7 +148,7 @@ nbd.ConditionalExpectedTransactions <- function(params, T.star, x, T.cal) {
 #' \item{\code{elog}}{A data.frame with a row for each transaction, and columns \code{cust}, \code{date} and \code{t}.}
 #' @export
 #' @examples
-#' n <- 1000  # no. of customers
+#' n <- 200  # no. of customers
 #' T.cal <- 32  # length of calibration period
 #' T.star <- 32  # length of hold-out period
 #' params <- c(r = 0.85, alpha = 4.45)  # purchase frequency lambda_i ~ Gamma(r, alpha)

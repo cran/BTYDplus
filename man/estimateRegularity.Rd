@@ -4,8 +4,13 @@
 \alias{estimateRegularity}
 \title{Estimate Regularity in Intertransaction Timings}
 \usage{
-estimateRegularity(elog, method = "wheat", plot = FALSE, title = "",
-  min = NULL)
+estimateRegularity(
+  elog,
+  method = "wheat",
+  plot = FALSE,
+  title = "",
+  min = NULL
+)
 }
 \arguments{
 \item{elog}{Event log, a \code{data.frame} with columns \code{cust} and
@@ -68,6 +73,5 @@ Wu, Couchen, and H-L. Chen. 'A consumer purchasing model with
   learning and departure behaviour.'  Journal of the Operational Research
   Society (2000): 583-591.
 
-\url{http://research.microsoft.com/en-us/um/people/minka/papers/minka-gamma.pdf}
+\url{https://tminka.github.io/papers/minka-gamma.pdf}
 }
-

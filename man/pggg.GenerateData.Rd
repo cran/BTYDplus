@@ -30,11 +30,12 @@ Simulate data according to Pareto/GGG model assumptions
 }
 \examples{
 params <- list(t = 4.5, gamma = 1.5, r = 5, alpha = 10, s = 0.8, beta = 12)
-data <- pggg.GenerateData(n = 1000, T.cal = 32, T.star = 32, params)
+data <- pggg.GenerateData(n = 200, T.cal = 32, T.star = 32, params)
 cbs <- data$cbs  # customer by sufficient summary statistic - one row per customer
 elog <- data$elog  # Event log - one row per event/purchase
 }
 \references{
-Platzer, Michael, and Thomas Reutterer. 'Ticking Away the Moments: Timing Regularity Helps to Better Predict Customer Activity.' Marketing Science (2016).
+Platzer, M., & Reutterer, T. (2016). Ticking away the moments:
+  Timing regularity helps to better predict customer activity. Marketing
+  Science, 35(5), 779-799. \doi{10.1287/mksc.2015.0963}
 }
-
